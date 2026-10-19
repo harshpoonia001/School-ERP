@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"npm --prefix Backend run dev\" \"npm --prefix Frontend run dev\"",
     "dev:backend": "npm --prefix Backend run dev",
-    "dev:frontend": "npm --prefix Frontend run dev"
+    "dev:frontend": "npm --prefix Frontend run dev",
+    "db:push": "npm --prefix Backend run prisma:push",
+    "db:seed": "npm --prefix Backend run db:seed",
+    "setup:db": "npm --prefix Backend run prisma:push && npm --prefix Backend run db:seed"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

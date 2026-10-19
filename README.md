@@ -1,8 +1,5 @@
 # SchoolFlow ERP - Mini School Management System
 
-> **Aelyx Pvt. Ltd. Full-Stack Take-Home Assignment | 24-Hour Engineering Challenge**  
-> A production-grade, simplified School Management ERP built with **Node.js/Express**, **React (Vite)**, and **Supabase (PostgreSQL)** featuring full Role-Based Access Control (RBAC), multi-layered feature architecture, and daily attendance workflows.
-
 ---
 
 ## ⚡ Quickstart Guide (Runs in < 3 Minutes)
@@ -11,31 +8,31 @@
 - **Node.js** (v18+ or v20+)
 - **npm** (v9+)
 
+---
+
 ### 2. Clone & Environment Configuration
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/School-ERM.git
-cd School-ERM
+git clone https://github.com/harshpoonia001/School-ERP.git
+cd School-ERP
 ```
 
-Configure your environment variables:
-
-**Backend (`Backend/.env`):**
+#### Step A: Configure Backend (`Backend/.env`)
 ```bash
 cp Backend/.env.example Backend/.env
 ```
-Ensure your Supabase PostgreSQL connection string is set in `Backend/.env`:
+
 ```env
 PORT=5000
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
-DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres"
+DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres"
 JWT_SECRET=super_secret_jwt_key_school_erp_change_me_in_production_32chars!
 JWT_EXPIRES_IN=24h
 ```
 
-**Frontend (`Frontend/.env`):**
+#### Step B: Configure Frontend (`Frontend/.env`)
 ```bash
 cp Frontend/.env.example Frontend/.env
 ```
@@ -45,15 +42,30 @@ VITE_API_BASE_URL=http://localhost:5000/api
 
 ---
 
-### 3. Start Both Backend & Frontend (Single Command)
+### 3. Initialize Database Schema & Seed Data (Single Command)
+
+From the project root directory, push the Prisma relational schema to Supabase and seed realistic demo records:
+
+```bash
+# Pushes Prisma schema to Supabase and seeds demo classes, faculty, students & attendance
+npm run setup:db
+```
+
+*(Alternatively, you can run them individually)*:
+- **Push Schema**: `npm --prefix Backend run prisma:push`
+- **Seed Database**: `npm --prefix Backend run db:seed`
+
+---
+
+### 4. Start Both Backend & Frontend Simultaneously
 
 From the project root:
 ```bash
-# Start both Backend (:5000) and Frontend (:5173) simultaneously
+# Starts Backend (:5000) and Frontend (:5173) concurrently in one terminal
 npm run dev
 ```
 
-*(Alternatively, you can run them in separate terminals)*:
+*(Or run in separate terminal tabs if preferred)*:
 - **Backend**: `npm run dev:backend` (or `cd Backend && npm run dev`)
 - **Frontend**: `npm run dev:frontend` (or `cd Frontend && npm run dev`)
 
@@ -61,17 +73,83 @@ Open **`http://localhost:5173`** in your browser.
 
 ---
 
-## 🔑 Pre-Seeded Demo Credentials
+## 🔑 Pre-Seeded Demo Credentials (Prototype Evaluation Mode)
 
-The login page provides **1-Click Quick Demo Login** buttons for each role:
+The login screen includes a dedicated **Prototype Evaluation Mode** toolbar with 1-click credential pre-fills for rapid persona testing:
 
 | Role | Email | Password | Access & Responsibilities |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin@school.com` | `admin123` | Full system control: Manage faculty, classes, students, and system-wide attendance |
-| **Teacher** | `teacher@school.com` | `teacher123` | Class in-charge for **Grade 10 - A**: Daily attendance entry, student roster, class logs |
-| **Teacher 2** | `teacher2@school.com` | `teacher123` | Class in-charge for **Grade 10 - B** |
-| **Student** | `student@school.com` | `student123` | Alex Johnson (Grade 10 - A): View personal profile, attendance percentage & history |
-| **Student 2** | `emma@school.com` | `student123` | Emma Watson (Grade 10 - A) |
+| **Admin** | `admin@school.com` | `admin123` | Full administrative control: Manage faculty, classes, student enrollment & portal access, and school-wide attendance audits. |
+| **Teacher** | `teacher@school.com` | `teacher123` | Homeroom in-charge for **Grade 10 - A**: Daily roll call marking, student roster, and class attendance logs. |
+| **Teacher 2** | `teacher2@school.com` | `teacher123` | Homeroom in-charge for **Grade 10 - B**: Science & homeroom management. |
+| **Student** | `student@school.com` | `student123` | Alex Johnson (Grade 10 - A): Personal dashboard, attendance percentage KPI, and session logs. |
+| **Student 2** | `emma@school.com` | `student123` | Emma Watson (Grade 10 - A): Student self-service portal. |
+
+---
+
+## 📖 Role-Based Walkthrough & First-Time User Guide
+
+When logging into SchoolFlow ERP for the first time, each user persona experiences a tailored workflow:
+
+### 👑 1. Administrator Experience (`/admin`)
+The **Admin** holds full operational command over school data and policies:
+1. **Master Dashboard Overview (`/admin`)**:
+   - Inspect top-level KPIs: Total Students, Teaching Faculty, Active Classes, and Today's School-Wide Attendance Percentage.
+   - Review the **Class-by-Class Attendance Breakdown** showing real-time attendance rates across all sections.
+2. **Faculty & Staff Management (`/admin/teachers`)**:
+   - Click **"+ Add Faculty Member"** to onboard a new teacher with employee ID, subject specialization, and initial credentials.
+   - Edit contact info or delete inactive staff records.
+   - Paginated faculty directory with instant search across name, subject, employee ID, and email.
+3. **Classes & Sections (`/admin/classes`)**:
+   - Create academic classes (e.g., `Grade 10`, Section `A`, Academic Year `2026-2027`).
+   - Assign an active faculty member as the **Homeroom Class In-Charge**.
+   - Monitor enrolled student headcounts per class card.
+4. **Student Information System (`/admin/students`)**:
+   - Click **"+ Enroll New Student"** to register student details, roll number, class assignment, and guardian contact info.
+   - **Post-Creation Portal Access Management**:
+     - If a student was created without login access, open the student edit modal to check **"Grant Portal Login Account"** and provision credentials.
+     - For students with accounts: update login email, reset passwords, toggle active login state, or revoke access.
+5. **System-Wide Attendance Records & CSV Export (`/admin/attendance`)**:
+   - Multi-filter historical attendance by Class and Date Range (`From` &rarr; `To`).
+   - Click **"Export to CSV"** to instantly generate and download formatted attendance sheets.
+6. **Account Security**:
+   - Change administrator password at any time via the **"Change Password"** button in the top header.
+
+---
+
+### 👨‍🏫 2. Teacher Experience (`/teacher`)
+The **Teacher** portal is engineered for high-speed classroom operations:
+1. **Homeroom Dashboard (`/teacher`)**:
+   - View assigned class status (e.g., `Grade 10 - A`), total enrolled strength, and 30-day attendance trends.
+   - Displays a prominent status card indicating whether today's attendance has been recorded or is still pending.
+2. **Daily Roll Call Workspace (`/teacher/attendance/mark`)**:
+   - Fast, keyboard-friendly attendance recording for the teacher's assigned class.
+   - **⚡ 1-Click "Mark All Present"**: Sets the entire class roster to `Present` in one click.
+   - Granular status toggles: Toggle individual students between `Present` [Green], `Late` [Amber], `Absent` [Red], and `Excused` [Blue].
+   - Add contextual remarks (e.g., *"Medical excuse note provided"*).
+   - Save and update submissions with full revision tracking.
+3. **Student Class Roster (`/teacher/students`)**:
+   - View assigned homeroom students, roll numbers, guardian contact numbers, and portal status.
+4. **Class Attendance History (`/teacher/attendance/history`)**:
+   - Audit chronological attendance logs for the homeroom class with pagination and CSV export.
+5. **Default Password Security Alert**:
+   - If using the initial default password assigned by the admin (`teacher123`), an amber warning banner is displayed across the top of the dashboard:
+     > ⚠️ **Default Initial Password in Use**: *Please update your password to secure your account.*
+   - Clicking **"Update Password Now"** opens the password change dialog, which automatically clears the warning once updated.
+
+---
+
+### 🎓 3. Student Experience (`/student`)
+The **Student** self-service portal provides attendance transparency:
+1. **Personal Dashboard (`/student`)**:
+   - View student profile details (Name, Class, Roll Number, Institutional ID).
+   - Prominent **Attendance Percentage Health Badge** (>90% Green, 75-90% Amber, <75% Red).
+   - Summary counters: Total Sessions Held, Days Present, Days Absent, and Late arrivals.
+   - Quick preview of the 7 most recent class sessions.
+2. **Complete Attendance History (`/student/attendance`)**:
+   - Full, paginated date-by-date attendance record with status badges and teacher remarks.
+3. **Account Password Update**:
+   - Students can change their password directly from their dashboard, clearing the initial password security alert banner.
 
 ---
 
@@ -83,33 +161,6 @@ The login page provides **1-Click Quick Demo Login** buttons for each role:
 | **Frontend** | **React 19 + Vite (TypeScript)** | • **Component-Driven UI**: Fits modular dashboard widgets, reactive attendance toggle matrices, and data tables.<br>• **Zero-Reload SPA Navigation**: Role-guarded client routes (`/admin/*`, `/teacher/*`, `/student/*`) offer instant page transitions.<br>• **Sub-Second HMR**: Vite delivers lightning-fast build times (bundle compiles in < 500ms). |
 | **Database** | **Supabase PostgreSQL (Free Tier)** | • **Zero Local CPU/RAM Overhead**: Hosted cloud PostgreSQL avoids running heavy local Docker or DB daemons.<br>• **Strict Relational Integrity & ACID**: Mandatory for school ERPs where students belong to classes and attendance links student, class, teacher, and date with composite unique constraints (`UNIQUE(student_id, date)`).<br>• **Native SQL Aggregations**: Enables fast calculations of attendance percentages and daily statistics. |
 | **ORM** | **Prisma ORM** | Type-safe schema definition, instant migrations, automated client generation, and declarative seed scripts. |
-
----
-
-## 📐 System Architecture
-
-### 1. Frontend: Feature-Based Four-Layer Architecture
-
-Every feature module (`auth/`, `dashboard/`, `teachers/`, `classes/`, `students/`, `attendance/`) is strictly structured into 4 decoupled layers:
-
-```
-src/features/<feature>/
-├── api/            # Layer 1: Pure Axios HTTP communication (No React state)
-├── state/          # Layer 2: Dedicated Context & Source-of-Truth Provider
-├── hooks/          # Layer 3: Custom hook orchestrating API, State, and UI actions
-└── ui/             # Layer 4: Declarative UI components & full page views
-    ├── components/
-    └── pages/
-```
-
-- **API Layer**: Single point of communication with backend endpoints.
-- **State Layer**: The only layer where primary feature states are created and exposed.
-- **Hooks Layer**: Orchestrates API requests, state updates, toast alerts, and provides clean action handlers.
-- **UI Layer**: Displays the interface and captures user intent, delegating all operations to the feature hook.
-
-### 2. URL Decoupling
-- **Backend CORS**: Configured dynamically from a single environment variable: `FRONTEND_URL` (supports single origins or comma-separated lists).
-- **Frontend API**: All requests route through a single centralized client driven by `VITE_API_BASE_URL`.
 
 ---
 
@@ -137,6 +188,7 @@ erDiagram
         string password_hash
         enum role "ADMIN, TEACHER, STUDENT, PARENT"
         boolean is_active
+        boolean must_change_password
         timestamp created_at
     }
 
@@ -193,35 +245,38 @@ erDiagram
 
 ## 🌟 Features Implemented
 
-### Core Requirements (Must-Have)
+### Core Requirements
 - [x] **Authentication & RBAC**: JWT bearer tokens, `bcryptjs` password hashing, protected endpoints.
 - [x] **Staff & Teacher Management (Admin)**: Add, edit, delete faculty; assign subjects and homerooms.
 - [x] **Class & Section Management (Admin)**: Create classes, assign faculty in-charge, view student headcounts.
-- [x] **Student Management (Admin)**: Add, edit, delete students; auto-provision student self-service accounts.
+- [x] **Student Management (Admin & Teacher)**: Add, edit, delete students; manage portal access post-creation.
 - [x] **Daily Attendance Entry**: Teacher marks their assigned class with status buttons (`PRESENT`, `ABSENT`, `LATE`, `EXCUSED`).
 - [x] **Role-Tailored Dashboards**:
   - **Admin**: Student, teacher, class counts + today's attendance summary rate + per-class status breakdown.
   - **Teacher**: Homeroom summary, today's submission status indicator, 30-day class attendance rate.
   - **Student**: Personal attendance percentage badge, total present/absent counts, and history table.
 
-### Bonus Points (Optional Scopes Completed)
+### Bonus Features & Enhancements
+- [x] **Universal Table Pagination**: Reusable `<Pagination />` component integrated across student directory, faculty list, attendance reports, classes, and student personal logs.
+- [x] **Post-Creation Student Portal Access**: Admins and teachers can grant, update, or revoke student portal accounts anytime from the edit modal.
+- [x] **Initial Password Security Banner**: Notification banner alerting users who are still using default assigned passwords, with self-service password update modal.
 - [x] **First-Class Student Portal**: Students log in, inspect their attendance percentage, and view recent logs.
 - [x] **Instant Search & Filters**: Search across students and teachers; filter student roster by class and section.
 - [x] **1-Click "Mark All Present"**: Convenience feature for teachers to record attendance in seconds.
 - [x] **CSV Export**: Download full attendance report for any class and date range with a single click.
-- [x] **Polished Obsidian Dark Glass Design System**: Glassmorphism cards, micro-animations, toast notifications, responsive sidebar, and accessible modal dialogs without external UI libraries.
 
 ---
 
-## 🔮 What Was Skipped / Future Improvements
+## 🔮 Future Scope & Planned Improvements
 
-Given the 24-hour take-home scope, the following production features were planned for future phases:
-1. **Parent Portal Activation**: The database already includes the `parents` and `parent_students` schema tables. A dedicated parent portal view with SMS/email notifications for student absences can be activated without schema modifications.
-2. **Automated Notification Dispatch**: Email/SMS webhooks (e.g. Twilio / SendGrid) triggered whenever a student is marked `ABSENT`.
-3. **Timetable & Period Attendance**: Extending daily homeroom attendance to per-subject period attendance.
-4. **Biometric & RFID Sync**: Webhook receiver for automated biometric/RFID turnstile attendance entry.
-
----
-
-## 📄 License
-ISC License &bull; Developed for Aelyx Pvt. Ltd. Full-Stack Take-Home Challenge.
+1. **High-Volume Bulk Student Enrollment via CSV/XLSX & Direct Supabase Storage**:
+   - *Architecture Design*: To support high-volume enrollment (hundreds of students at the start of an academic term), an asynchronous bulk ingestion pipeline was architected:
+     - Providing a downloadable spreadsheet template (`.csv` / `.xlsx`).
+     - Frontend uploads the file directly to a dedicated Supabase Storage bucket (`student-imports/`) via a backend-generated presigned upload URL, avoiding server memory overhead.
+     - An asynchronous background worker parses rows, resolves classes, creates student records and optional portal accounts.
+     - **Fault Tolerance**: If any row fails (e.g., duplicate roll number or missing class), the worker records the exact row number and failure reason without halting the batch, uploading a downloadable error report CSV back to Supabase Storage.
+   - *Status*: Scoped for future enterprise releases to prevent overengineering in the core MVP while preserving strict relational integrity.
+2. **Parent Portal Activation**: The database already includes the `parents` and `parent_students` schema tables. A dedicated parent portal view with SMS/email notifications for student absences can be activated without schema modifications.
+3. **Automated Notification Dispatch**: Email/SMS webhooks (e.g. Twilio / SendGrid) triggered whenever a student is marked `ABSENT`.
+4. **Timetable & Period Attendance**: Extending daily homeroom attendance to per-subject period attendance.
+5. **Biometric & RFID Sync**: Webhook receiver for automated biometric/RFID turnstile attendance entry.

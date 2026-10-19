@@ -135,47 +135,78 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           {!submitting && <ArrowRight size={18} />}
         </button>
 
-        {/* Demo Fast-Switch Buttons */}
-        <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-subtle)' }}>
+        {/* Prototype Evaluation Demo Credentials */}
+        <div
+          style={{
+            marginTop: '2rem',
+            padding: '1.25rem',
+            background: 'rgba(99, 102, 241, 0.08)',
+            border: '1px solid rgba(99, 102, 241, 0.25)',
+            borderRadius: 'var(--radius-md)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.4rem',
+              marginBottom: '0.35rem',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                color: '#818cf8',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+              }}
+            >
+              ⚡ Prototype Evaluation Mode
+            </span>
+          </div>
           <p
             style={{
               fontSize: '0.75rem',
-              color: 'var(--text-muted)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              marginBottom: '0.75rem',
+              color: 'var(--text-secondary)',
               textAlign: 'center',
+              marginBottom: '0.875rem',
+              lineHeight: 1.4,
             }}
           >
-            1-Click Demo Logins
+            Pre-configured accounts for testing role-based access control (RBAC):
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
             <button
               type="button"
               className="btn btn-secondary btn-sm"
               onClick={() => handleQuickLogin('admin@school.com', 'admin123')}
-              title="Admin role"
+              title="Admin role (Full management)"
+              style={{ flexDirection: 'column', gap: '0.2rem', padding: '0.5rem 0.25rem', height: 'auto' }}
             >
-              <Shield size={14} color="#a78bfa" />
-              Admin
+              <Shield size={16} color="#a78bfa" />
+              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Admin</span>
             </button>
             <button
               type="button"
               className="btn btn-secondary btn-sm"
               onClick={() => handleQuickLogin('teacher@school.com', 'teacher123')}
-              title="Teacher role"
+              title="Teacher role (Homeroom attendance)"
+              style={{ flexDirection: 'column', gap: '0.2rem', padding: '0.5rem 0.25rem', height: 'auto' }}
             >
-              <BookOpen size={14} color="#60a5fa" />
-              Teacher
+              <BookOpen size={16} color="#60a5fa" />
+              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Teacher</span>
             </button>
             <button
               type="button"
               className="btn btn-secondary btn-sm"
               onClick={() => handleQuickLogin('student@school.com', 'student123')}
-              title="Student role"
+              title="Student role (Personal portal)"
+              style={{ flexDirection: 'column', gap: '0.2rem', padding: '0.5rem 0.25rem', height: 'auto' }}
             >
-              <GraduationCap size={14} color="#34d399" />
-              Student
+              <GraduationCap size={16} color="#34d399" />
+              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Student</span>
             </button>
           </div>
         </div>
