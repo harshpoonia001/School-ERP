@@ -23,6 +23,15 @@ export interface UpdateStudentDto {
   guardianEmail?: string | null;
   dateOfBirth?: string | null;
   studentId?: string | null;
+  portalEmail?: string | null;
+  portalPassword?: string | null;
+  portalAction?: 'grant' | 'update' | 'revoke' | 'toggle_active' | 'suspend' | 'reactivate';
+  portalActive?: boolean;
+  user?: {
+    email?: string | null;
+    password?: string | null;
+    isActive?: boolean;
+  };
 }
 
 export const studentsApi = {

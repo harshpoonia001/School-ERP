@@ -15,7 +15,7 @@ export const StudentAttendancePage: React.FC = () => {
 
   if (isLoading && !studentData) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--slate)' }}>
         Loading your attendance log...
       </div>
     );
@@ -41,28 +41,30 @@ export const StudentAttendancePage: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.75rem' }}>My Personal Attendance Record</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-            Historical record of your daily class attendance and participation status
+          <h2 style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--charcoal)', margin: 0 }}>
+            My Personal Attendance Record
+          </h2>
+          <p style={{ color: 'var(--slate)', fontSize: '0.85rem', margin: '0.2rem 0 0' }}>
+            Comprehensive historical ledger of your daily class attendance and participation
           </p>
         </div>
 
-        <div className="badge badge-present" style={{ fontSize: '0.9375rem', padding: '0.5rem 1rem' }}>
-          Current Attendance: {stats?.attendancePercentage ?? 100}%
+        <div className="badge badge-present" style={{ fontSize: '0.875rem', padding: '0.5rem 1rem', boxShadow: 'var(--neu-flat-sm)' }}>
+          Overall Rate: <strong>{stats?.attendancePercentage ?? 100}%</strong>
         </div>
       </div>
 
-      <div className="glass-panel" style={{ padding: '1.5rem' }}>
+      <div className="neu-card" style={{ padding: '1.5rem' }}>
         <div className="table-wrapper">
           <table className="data-table">
             <thead>
               <tr>
                 <th>Date</th>
                 <th>Status</th>
-                <th>Remarks / Notes</th>
+                <th>Remarks / Observations</th>
               </tr>
             </thead>
             <tbody>
@@ -70,18 +72,23 @@ export const StudentAttendancePage: React.FC = () => {
                 paginatedLogs.map((log) => (
                   <tr key={log.id}>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 500 }}>
-                        <Calendar size={13} color="var(--text-muted)" />
-                        {log.date}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 600 }}>
+                        <Calendar size={13} color="var(--primary-laurel)" />
+                        {new Date(log.date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
                       </div>
                     </td>
                     <td>{getStatusBadge(log.status)}</td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{log.remarks || '—'}</td>
+                    <td style={{ color: 'var(--slate)' }}>{log.remarks || '—'}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                  <td colSpan={3} style={{ textAlign: 'center', padding: '3rem', color: 'var(--slate)' }}>
                     No personal attendance entries recorded yet.
                   </td>
                 </tr>

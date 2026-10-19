@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { Mail, Lock, ArrowRight, Shield, BookOpen, GraduationCap } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Shield, BookOpen, GraduationCap, Eye, EyeOff } from 'lucide-react';
 
 interface LoginFormProps {
   onSuccess: (role: string) => void;
@@ -10,6 +10,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -36,38 +37,40 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
   return (
     <div style={{ width: '100%', maxWidth: '440px', margin: '0 auto' }}>
-      <form onSubmit={handleSubmit} className="glass-panel" style={{ padding: '2.5rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+      <form onSubmit={handleSubmit} className="neu-card" style={{ padding: '2.5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           <div
             style={{
-              width: '56px',
-              height: '56px',
+              width: '54px',
+              height: '54px',
               margin: '0 auto 1rem',
               borderRadius: '14px',
-              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+              background: 'linear-gradient(135deg, var(--primary-laurel), var(--primary-laurel-dark))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 0 25px rgba(99, 102, 241, 0.5)',
+              boxShadow: '4px 4px 12px rgba(74, 124, 89, 0.35)',
             }}
           >
-            <Shield size={28} color="#ffffff" />
+            <GraduationCap size={30} color="#ffffff" />
           </div>
-          <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>Welcome Back</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-            Sign in to access your school portal
+          <h2 style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--charcoal)', marginBottom: '0.35rem' }}>
+            Welcome Back
+          </h2>
+          <p style={{ color: 'var(--slate)', fontSize: '0.85rem', margin: 0 }}>
+            Sign in to access your SchoolFlow portal
           </p>
         </div>
 
         {errorMsg && (
           <div
+            className="neu-inset-sm"
             style={{
               padding: '0.75rem 1rem',
               marginBottom: '1.25rem',
-              background: 'var(--rose-bg)',
-              border: '1px solid rgba(244, 63, 94, 0.3)',
-              borderRadius: 'var(--radius-md)',
-              color: '#fda4af',
+              background: '#FBE6E5',
+              borderColor: '#F7C0BD',
+              color: '#BA1A1A',
               fontSize: '0.8125rem',
             }}
           >
@@ -79,13 +82,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           <label className="form-label">Email Address</label>
           <div style={{ position: 'relative' }}>
             <Mail
-              size={18}
+              size={17}
               style={{
                 position: 'absolute',
                 left: '0.875rem',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
+                color: 'var(--slate-light)',
               }}
             />
             <input
@@ -93,7 +96,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               required
               className="form-input"
               style={{ paddingLeft: '2.5rem' }}
-              placeholder="name@school.com"
+              placeholder="name@schoolflow.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -104,44 +107,59 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           <label className="form-label">Password</label>
           <div style={{ position: 'relative' }}>
             <Lock
-              size={18}
+              size={17}
               style={{
                 position: 'absolute',
                 left: '0.875rem',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
+                color: 'var(--slate-light)',
               }}
             />
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               required
               className="form-input"
-              style={{ paddingLeft: '2.5rem' }}
+              style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                color: 'var(--slate)',
+                cursor: 'pointer',
+              }}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
         </div>
 
         <button
           type="submit"
           className="btn btn-primary"
-          style={{ width: '100%', marginTop: '0.5rem', height: '44px' }}
+          style={{ width: '100%', marginTop: '0.5rem', height: '46px', fontSize: '0.92rem' }}
           disabled={submitting}
         >
           {submitting ? 'Authenticating...' : 'Sign In to Portal'}
-          {!submitting && <ArrowRight size={18} />}
+          {!submitting && <ArrowRight size={17} />}
         </button>
 
         {/* Prototype Evaluation Demo Credentials */}
         <div
+          className="neu-inset"
           style={{
-            marginTop: '2rem',
+            marginTop: '1.75rem',
             padding: '1.25rem',
-            background: 'rgba(99, 102, 241, 0.08)',
-            border: '1px solid rgba(99, 102, 241, 0.25)',
             borderRadius: 'var(--radius-md)',
           }}
         >
@@ -156,9 +174,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           >
             <span
               style={{
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                color: '#818cf8',
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                color: 'var(--primary-laurel-dark)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
               }}
@@ -169,44 +187,45 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           <p
             style={{
               fontSize: '0.75rem',
-              color: 'var(--text-secondary)',
+              color: 'var(--slate)',
               textAlign: 'center',
-              marginBottom: '0.875rem',
+              marginBottom: '0.85rem',
               lineHeight: 1.4,
+              margin: '0 0 0.75rem',
             }}
           >
-            Pre-configured accounts for testing role-based access control (RBAC):
+            Click below to autofill pre-configured test credentials:
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
             <button
               type="button"
-              className="btn btn-secondary btn-sm"
+              className="neu-btn btn-sm"
               onClick={() => handleQuickLogin('admin@school.com', 'admin123')}
               title="Admin role (Full management)"
               style={{ flexDirection: 'column', gap: '0.2rem', padding: '0.5rem 0.25rem', height: 'auto' }}
             >
-              <Shield size={16} color="#a78bfa" />
-              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Admin</span>
+              <Shield size={16} color="#653A8F" />
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--charcoal)' }}>Admin</span>
             </button>
             <button
               type="button"
-              className="btn btn-secondary btn-sm"
+              className="neu-btn btn-sm"
               onClick={() => handleQuickLogin('teacher@school.com', 'teacher123')}
               title="Teacher role (Homeroom attendance)"
               style={{ flexDirection: 'column', gap: '0.2rem', padding: '0.5rem 0.25rem', height: 'auto' }}
             >
-              <BookOpen size={16} color="#60a5fa" />
-              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Teacher</span>
+              <BookOpen size={16} color="#235487" />
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--charcoal)' }}>Teacher</span>
             </button>
             <button
               type="button"
-              className="btn btn-secondary btn-sm"
+              className="neu-btn btn-sm"
               onClick={() => handleQuickLogin('student@school.com', 'student123')}
               title="Student role (Personal portal)"
               style={{ flexDirection: 'column', gap: '0.2rem', padding: '0.5rem 0.25rem', height: 'auto' }}
             >
-              <GraduationCap size={16} color="#34d399" />
-              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Student</span>
+              <GraduationCap size={16} color="#2F593E" />
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--charcoal)' }}>Student</span>
             </button>
           </div>
         </div>

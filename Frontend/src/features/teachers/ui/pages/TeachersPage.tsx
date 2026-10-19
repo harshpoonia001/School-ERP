@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useTeachers } from '../../hooks/useTeachers';
 import { TeacherModal } from '../components/TeacherModal';
 import { Teacher } from '../../../../shared/types/index';
-import { Plus, Search, Edit2, Trash2, Mail, Phone, BookOpen } from 'lucide-react';
+import { InitialsAvatar } from '@/shared/ui/Avatar/InitialsAvatar';
+import { Plus, Search, Edit2, Trash2, Mail, Phone, BookOpen, UserCheck, Shield } from 'lucide-react';
 import { Pagination } from '@/shared/ui/Pagination/Pagination';
 
 export const TeachersPage: React.FC = () => {
@@ -50,144 +51,184 @@ export const TeachersPage: React.FC = () => {
     }
   };
 
+  const paginatedTeachers = teachers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', paddingBottom: '3rem' }}>
       {/* Header & Controls */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.75rem' }}>Teachers & Staff Management</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-            Directory of teaching faculty, subject assignments, and class in-charges
+          <h2 style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--charcoal)', margin: 0 }}>
+            Faculty & Academic Staff
+          </h2>
+          <p style={{ color: 'var(--slate)', fontSize: '0.85rem', margin: '0.2rem 0 0' }}>
+            Teaching faculty directory, department specializations, and homeroom in-charge assignments
           </p>
         </div>
         <button onClick={handleOpenAdd} className="btn btn-primary">
-          <Plus size={18} /> Add Faculty Member
+          <Plus size={16} /> Add Faculty Member
         </button>
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="glass-panel" style={{ padding: '1rem 1.5rem' }}>
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <Search
-              size={18}
-              style={{
-                position: 'absolute',
-                left: '0.875rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-              }}
-            />
+      <div className="neu-card" style={{ padding: '1.25rem 1.5rem' }}>
+        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', maxWidth: '500px' }}>
+          <div className="neu-inset-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.75rem', width: '100%' }}>
+            <Search size={15} color="var(--slate-light)" />
             <input
               type="text"
-              className="form-input"
-              style={{ paddingLeft: '2.5rem' }}
-              placeholder="Search by teacher name, subject, employee ID, or email..."
+              placeholder="Search by name, subject, employee ID, or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                outline: 'none',
+                fontSize: '0.8125rem',
+                color: 'var(--charcoal)',
+                width: '100%',
+              }}
             />
           </div>
-          <button type="submit" className="btn btn-secondary">
+          <button type="submit" className="neu-btn btn-sm">
             Search
           </button>
           {search && (
             <button
               type="button"
-              className="btn btn-secondary"
+              className="neu-btn btn-sm"
               onClick={() => {
                 setSearch('');
                 fetchTeachers('');
               }}
             >
-              Clear
+              Reset
             </button>
           )}
         </form>
       </div>
 
       {/* Teachers Data Table */}
-      <div className="glass-panel" style={{ padding: '1.5rem' }}>
+      <div className="neu-card" style={{ padding: '1.25rem 1.5rem' }}>
         <div className="table-wrapper">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Faculty Name</th>
+                <th>Faculty</th>
                 <th>Employee ID</th>
-                <th>Contact</th>
-                <th>Subject</th>
+                <th>Department / Subject</th>
                 <th>Assigned Class</th>
+                <th>Contact</th>
+                <th>Account Status</th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading && teachers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--slate)' }}>
                     Loading faculty directory...
                   </td>
                 </tr>
-              ) : teachers.length > 0 ? (
-                teachers.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((t) => (
+              ) : paginatedTeachers.length > 0 ? (
+                paginatedTeachers.map((t) => (
                   <tr key={t.id}>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{t.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        User ID: {t.id.slice(0, 8)}...
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <InitialsAvatar name={t.name} size="sm" />
+                        <div>
+                          <div style={{ fontWeight: 700, color: 'var(--charcoal)' }}>{t.name}</div>
+                          {t.user?.email && (
+                            <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>
+                              {t.user.email}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td>
                       {t.employeeId ? (
-                        <span style={{ fontFamily: 'monospace', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.06)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                        <span
+                          className="neu-inset-sm"
+                          style={{
+                            fontFamily: 'monospace',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            padding: '0.15rem 0.45rem',
+                            display: 'inline-block',
+                          }}
+                        >
                           {t.employeeId}
                         </span>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
+                        <span style={{ color: 'var(--slate-light)' }}>—</span>
                       )}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
-                        <Mail size={13} color="var(--text-muted)" />
-                        <span>{t.user?.email || 'No email'}</span>
-                      </div>
-                      {t.phone && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                          <Phone size={13} color="var(--text-muted)" />
-                          <span>{t.phone}</span>
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      <span className="badge" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
-                        <BookOpen size={12} /> {t.subject}
+                      <span
+                        className="badge"
+                        style={{
+                          background: '#EAF2EC',
+                          color: '#3E6B4C',
+                          borderColor: '#D0E3D3',
+                          fontWeight: 700,
+                        }}
+                      >
+                        <BookOpen size={11} /> {t.subject}
                       </span>
                     </td>
                     <td>
                       {t.classesManaged && t.classesManaged.length > 0 ? (
-                        <span className="badge badge-role-teacher">
-                          {t.classesManaged.map((c) => `${c.name} - ${c.section}`).join(', ')}
-                        </span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                          {t.classesManaged.map((c) => (
+                            <span key={c.id} className="badge badge-present">
+                              {c.name} - {c.section}
+                            </span>
+                          ))}
+                        </div>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
-                          Unassigned
+                        <span style={{ color: 'var(--slate-light)', fontSize: '0.8125rem' }}>
+                          No Class Assigned
                         </span>
                       )}
                     </td>
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        {t.phone ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--charcoal)' }}>
+                            <Phone size={12} color="var(--primary-laurel)" /> {t.phone}
+                          </div>
+                        ) : (
+                          <span style={{ color: 'var(--slate-light)', fontSize: '0.75rem' }}>No phone listed</span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      {t.user?.isActive ? (
+                        <span className="badge badge-present">
+                          <UserCheck size={11} /> Active
+                        </span>
+                      ) : (
+                        <span className="badge badge-absent">Suspended</span>
+                      )}
+                    </td>
                     <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.35rem' }}>
                         <button
                           onClick={() => handleOpenEdit(t)}
-                          className="btn btn-secondary btn-sm"
-                          title="Edit Teacher"
+                          className="neu-btn btn-sm"
+                          style={{ padding: '0.35rem 0.55rem' }}
+                          title="Edit Faculty Record"
                         >
-                          <Edit2 size={14} />
+                          <Edit2 size={13} />
                         </button>
                         <button
                           onClick={() => handleDelete(t.id, t.name)}
                           className="btn btn-danger btn-sm"
-                          title="Delete Teacher"
+                          style={{ padding: '0.35rem 0.55rem' }}
+                          title="Delete Faculty Member"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </td>
@@ -195,8 +236,8 @@ export const TeachersPage: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                    No teachers found. Click "Add Faculty Member" to register one.
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--slate)' }}>
+                    No faculty members found. Click "Add Faculty Member" to enroll teachers.
                   </td>
                 </tr>
               )}

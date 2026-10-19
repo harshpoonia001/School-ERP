@@ -4,6 +4,8 @@ import {
   getClassAttendanceByDate,
   getAttendanceHistory,
   exportAttendanceCsv,
+  launchAttendanceDay,
+  getAttendanceDayStatus,
 } from './attendance.controller.js';
 import { authenticate } from '../../middleware/auth.js';
 import { authorize } from '../../middleware/rbac.js';
@@ -12,6 +14,12 @@ import { Role } from '@prisma/client';
 const router = Router();
 
 router.use(authenticate);
+
+// Launch or Close Attendance Session for the Day (Admin only)
+router.post('/day/launch', authorize(Role.ADMIN), launchAttendanceDay);
+
+// Check if attendance session is currently active/open for today
+router.get('/day/status', getAttendanceDayStatus);
 
 // Mark attendance: Teachers can mark for their assigned class; Admins can mark for any class
 router.post('/mark', authorize(Role.TEACHER, Role.ADMIN), markAttendance);

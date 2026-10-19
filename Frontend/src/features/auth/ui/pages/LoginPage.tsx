@@ -29,7 +29,7 @@ export const LoginPage: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'var(--text-secondary)',
+          color: 'var(--slate)',
         }}
       >
         Loading portal session...
@@ -46,21 +46,22 @@ export const LoginPage: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '1.5rem',
+        background: 'var(--canvas)',
       }}
     >
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2.25rem', letterSpacing: '-0.03em' }}>
-          School<span style={{ color: 'var(--primary-500)' }}>Flow</span> ERP
+        <h1 style={{ fontSize: '2.25rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--charcoal)' }}>
+          School<span style={{ color: 'var(--primary-laurel)' }}>Flow</span> ERP
         </h1>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem', fontSize: '0.9375rem' }}>
-          Integrated Staff, Teacher & Student Operations
+        <p style={{ color: 'var(--slate)', marginTop: '0.25rem', fontSize: '0.9375rem' }}>
+          Tactile Institutional Management & Roll Call System
         </p>
       </div>
 
       <LoginForm onSuccess={handleSuccess} />
 
-      <div style={{ marginTop: '2.5rem', color: 'var(--text-muted)', fontSize: '0.8125rem', textAlign: 'center' }}>
-        &copy; {new Date().getFullYear()} SchoolFlow Mini ERP &bull; 24h Engineering Challenge
+      <div style={{ marginTop: '2.5rem', textAlign: 'center', fontSize: '0.75rem', color: 'var(--slate-light)' }}>
+        SchoolFlow ERP • Saint Jude Academy • Alabaster & Laurel Design System
       </div>
     </div>
   );

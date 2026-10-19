@@ -3,7 +3,8 @@ import { useAttendance } from '@/features/attendance/hooks/useAttendance';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { classesApi } from '@/features/classes/api/classes.api';
 import type { SchoolClass, AttendanceStatus } from '@/shared/types';
-import { Download, Calendar, Filter } from 'lucide-react';
+import { InitialsAvatar } from '@/shared/ui/Avatar/InitialsAvatar';
+import { Download, Calendar, Filter, History } from 'lucide-react';
 import { Pagination } from '@/shared/ui/Pagination/Pagination';
 
 export const AttendanceHistoryPage: React.FC = () => {
@@ -72,43 +73,45 @@ export const AttendanceHistoryPage: React.FC = () => {
   const paginatedHistory = history.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.75rem' }}>Attendance Records & Reports</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-            Historical session logs, student participation, and downloadable attendance sheets
+          <h2 style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--charcoal)', margin: 0 }}>
+            Attendance Records & Ledger
+          </h2>
+          <p style={{ color: 'var(--slate)', fontSize: '0.85rem', margin: '0.2rem 0 0' }}>
+            Historical session logs, student participation records, and exportable ledger sheets
           </p>
         </div>
 
-        <button onClick={handleExport} className="btn btn-secondary">
-          <Download size={16} /> Export to CSV
+        <button onClick={handleExport} className="neu-btn btn-sm" style={{ padding: '0.55rem 1rem' }}>
+          <Download size={15} /> Export Ledger CSV
         </button>
       </div>
 
       {/* Filter Bar */}
-      <div className="glass-panel" style={{ padding: '1.25rem 1.5rem' }}>
+      <div className="neu-card" style={{ padding: '1.25rem 1.5rem' }}>
         <form onSubmit={handleFilter} style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Filter size={16} color="var(--primary-500)" />
+            <Filter size={16} color="var(--primary-laurel)" />
             <select
               className="form-select"
-              style={{ width: 'auto', minWidth: '180px' }}
+              style={{ width: 'auto', minWidth: '190px' }}
               value={selectedClass}
               onChange={(e) => setSelectedClass(e.target.value)}
             >
               {role === 'ADMIN' && <option value="all">All Classes & Sections</option>}
               {classes.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} - {c.section}
+                  {c.name} - {c.section} {c.roomNumber ? `(${c.roomNumber})` : ''}
                 </option>
               ))}
             </select>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>From:</span>
+            <span style={{ fontSize: '0.8125rem', color: 'var(--slate)', fontWeight: 600 }}>From:</span>
             <input
               type="date"
               className="form-input"
@@ -119,7 +122,7 @@ export const AttendanceHistoryPage: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>To:</span>
+            <span style={{ fontSize: '0.8125rem', color: 'var(--slate)', fontWeight: 600 }}>To:</span>
             <input
               type="date"
               className="form-input"
@@ -130,65 +133,92 @@ export const AttendanceHistoryPage: React.FC = () => {
           </div>
 
           <button type="submit" className="btn btn-primary btn-sm">
-            Apply Filter
+            Apply Filters
           </button>
         </form>
       </div>
 
       {/* Data Table */}
-      <div className="glass-panel" style={{ padding: '1.5rem' }}>
+      <div className="neu-card" style={{ padding: '1.25rem 1.5rem' }}>
         <div className="table-wrapper">
           <table className="data-table">
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Roll No</th>
-                <th>Student Name</th>
-                <th>Class</th>
+                <th style={{ width: '60px' }}>Roll</th>
+                <th>Student</th>
+                <th>Classroom</th>
                 <th>Status</th>
                 <th>Remarks</th>
-                <th>Marked By</th>
+                <th>Recorded By</th>
               </tr>
             </thead>
             <tbody>
               {isLoading && history.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--slate)' }}>
                     Loading attendance history...
                   </td>
                 </tr>
               ) : history.length > 0 ? (
                 paginatedHistory.map((r) => (
                   <tr key={r.id}>
-                    <td style={{ fontWeight: 500 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Calendar size={13} color="var(--text-muted)" />
-                        {r.date}
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
+                        <Calendar size={13} color="var(--primary-laurel)" />
+                        {new Date(r.date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
                       </div>
                     </td>
                     <td>
-                      <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>#{r.rollNumber}</span>
+                      <span
+                        className="neu-inset-sm"
+                        style={{
+                          fontWeight: 700,
+                          fontFamily: 'monospace',
+                          color: 'var(--primary-laurel-dark)',
+                          padding: '0.15rem 0.45rem',
+                          display: 'inline-block',
+                        }}
+                      >
+                        #{r.rollNumber}
+                      </span>
                     </td>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{r.studentName}</div>
-                      {r.institutionalId && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{r.institutionalId}</div>
-                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                        <InitialsAvatar name={r.studentName} size="sm" />
+                        <div>
+                          <div style={{ fontWeight: 700, color: 'var(--charcoal)' }}>{r.studentName}</div>
+                          {r.institutionalId && (
+                            <div style={{ fontSize: '0.72rem', color: 'var(--slate)' }}>{r.institutionalId}</div>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td>
-                      <span className="badge" style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)' }}>
+                      <span
+                        className="badge"
+                        style={{
+                          background: '#EAF2EC',
+                          color: '#3E6B4C',
+                          borderColor: '#D0E3D3',
+                        }}
+                      >
                         {r.className}
                       </span>
                     </td>
                     <td>{getStatusBadge(r.status)}</td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{r.remarks || '—'}</td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{r.markedBy}</td>
+                    <td style={{ color: 'var(--slate)' }}>{r.remarks || '—'}</td>
+                    <td style={{ color: 'var(--slate)', fontSize: '0.8125rem' }}>{r.markedBy || 'Teacher'}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                    No attendance records match the selected date range and class.
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--slate)' }}>
+                    No attendance records match the selected date range and class filter.
                   </td>
                 </tr>
               )}

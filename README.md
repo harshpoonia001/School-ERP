@@ -92,23 +92,30 @@ The login screen includes a dedicated **Prototype Evaluation Mode** toolbar with
 When logging into SchoolFlow ERP for the first time, each user persona experiences a tailored workflow:
 
 ### 👑 1. Administrator Experience (`/admin`)
-The **Admin** holds full operational command over school data and policies:
-1. **Master Dashboard Overview (`/admin`)**:
-   - Inspect top-level KPIs: Total Students, Teaching Faculty, Active Classes, and Today's School-Wide Attendance Percentage.
-   - Review the **Class-by-Class Attendance Breakdown** showing real-time attendance rates across all sections.
+The **Admin** holds full operational command over school data, security policies, and daily roll call operations:
+1. **Executive Operations Command & Master Dashboard (`/admin`)**:
+   - **⚡ Daily Roll Call Session Launch Control (`AttendanceDay`)**: Centralized administrative switch on the dashboard to formally launch today's morning roll call with a single click. Displays the active session date, status badge, and signals all classroom faculty that roll call is active.
+   - **Top-Level KPI Overview**: Total Enrolled Students, Teaching Faculty, Active Classrooms, and Today's School-Wide Attendance Percentage.
+   - **Classroom Attendance Status Table**: Live per-classroom breakdown featuring Homeroom Teacher, Room Number, Enrolled Count, Present Count, **Absent / Late Student Breakdown**, and a visual **Attendance Rate** progress bar.
+   - **🔥 Ranked Absence Watchlist**: Automatically ranks classrooms by highest absent count today, allowing school leadership to instantly detect truancy hotspots and attendance anomalies.
+   - **📡 Recent Submissions Feed**: Real-time activity stream showing latest roll call submissions submitted by homeroom teachers, including timestamps and counts.
 2. **Faculty & Staff Management (`/admin/teachers`)**:
    - Click **"+ Add Faculty Member"** to onboard a new teacher with employee ID, subject specialization, and initial credentials.
    - Edit contact info or delete inactive staff records.
    - Paginated faculty directory with instant search across name, subject, employee ID, and email.
 3. **Classes & Sections (`/admin/classes`)**:
-   - Create academic classes (e.g., `Grade 10`, Section `A`, Academic Year `2026-2027`).
+   - Create academic classes (e.g., `Grade 10`, Section `A`, Room `Room 304`, Academic Year `2025-2026`).
    - Assign an active faculty member as the **Homeroom Class In-Charge**.
    - Monitor enrolled student headcounts per class card.
-4. **Student Information System (`/admin/students`)**:
-   - Click **"+ Enroll New Student"** to register student details, roll number, class assignment, and guardian contact info.
-   - **Post-Creation Portal Access Management**:
-     - If a student was created without login access, open the student edit modal to check **"Grant Portal Login Account"** and provision credentials.
-     - For students with accounts: update login email, reset passwords, toggle active login state, or revoke access.
+4. **Student Information System & Security Holds (`/admin/students`)**:
+   - **4 Metric KPI Cards**: Total Enrolled, Portal Active, Unprovisioned Accounts, and **Security Suspensions** (tracks accounts currently under bursar hold or auth lock).
+   - **Portal Status Filtering**: Filter roster instantly by `All Students`, `Portal Active`, `No Portal`, or `Suspended`.
+   - **Enroll New Student**: Register student profile, institutional student ID (`STU-XXXX-XXX`), roll number, class assignment, and guardian contact details.
+   - **🔒 Student Account Suspension & Reactivation**:
+     - Each student's portal status is prominently marked in the directory (`Enabled`, `No Account`, or red `Suspended - Security Hold · Access Restricted` pill).
+     - Editing a student opens the dedicated **Portal Security & Access Status Neu Card** featuring real-time account status, security hold notice, and a 1-click **"Suspend Student Access" / "Reactivate Access"** toggle.
+     - Suspending a student blocks login credentials and portal access immediately while keeping all historical attendance and academic files completely safe.
+     - Provision credentials for students who initially had no login account, or reset passwords with 1-click random password generation.
 5. **System-Wide Attendance Records & CSV Export (`/admin/attendance`)**:
    - Multi-filter historical attendance by Class and Date Range (`From` &rarr; `To`).
    - Click **"Export to CSV"** to instantly generate and download formatted attendance sheets.
@@ -120,7 +127,8 @@ The **Admin** holds full operational command over school data and policies:
 ### 👨‍🏫 2. Teacher Experience (`/teacher`)
 The **Teacher** portal is engineered for high-speed classroom operations:
 1. **Homeroom Dashboard (`/teacher`)**:
-   - View assigned class status (e.g., `Grade 10 - A`), total enrolled strength, and 30-day attendance trends.
+   - View assigned class status (e.g., `Grade 10 - A`, `Room 304`), total enrolled strength, and 30-day attendance trends.
+   - **📡 Live Roll Call Synchronization**: Displays visual confirmation when today's attendance session has been formally launched by the administration (`Live Roll Call Active`).
    - Displays a prominent status card indicating whether today's attendance has been recorded or is still pending.
 2. **Daily Roll Call Workspace (`/teacher/attendance/mark`)**:
    - Fast, keyboard-friendly attendance recording for the teacher's assigned class.
@@ -257,11 +265,16 @@ erDiagram
   - **Student**: Personal attendance percentage badge, total present/absent counts, and history table.
 
 ### Bonus Features & Enhancements
-- [x] **Universal Table Pagination**: Reusable `<Pagination />` component integrated across student directory, faculty list, attendance reports, classes, and student personal logs.
+- [x] **⚡ Live Roll Call Session Launch (`AttendanceDay`)**: Centralized administrative switch to officially launch the school-wide daily roll call session with a single click, instantly broadcasting live status to all classroom teachers.
+- [x] **🔒 Student Account Suspension & Security Hold**: Administrators can suspend student digital portal access with one click from the student edit dialog, placing accounts under an administrative hold while keeping academic and attendance records intact.
+- [x] **🔥 Ranked Absence Watchlist**: Automatic ranking of classrooms based on today's absence counts, enabling leadership to detect anomalies at a glance.
+- [x] **Classroom Attendance Matrix**: Live administrative table showing homeroom teachers, enrolled strength, present count, absent/late student counts, and attendance rate progress bars.
+- [x] **🎨 Alabaster & Laurel Tactile Neumorphic Design System**: Custom soft-extruded cards, sunken tactile wells, zero image upload overhead via frontend initial avatars, and responsive layouts.
+- [x] **Universal Table Pagination**: Reusable `<Pagination />` component integrated across student directory, faculty list, attendance reports, classes, and student personal logs with customizable per-page limits.
 - [x] **Post-Creation Student Portal Access**: Admins and teachers can grant, update, or revoke student portal accounts anytime from the edit modal.
 - [x] **Initial Password Security Banner**: Notification banner alerting users who are still using default assigned passwords, with self-service password update modal.
 - [x] **First-Class Student Portal**: Students log in, inspect their attendance percentage, and view recent logs.
-- [x] **Instant Search & Filters**: Search across students and teachers; filter student roster by class and section.
+- [x] **Instant Search & Filters**: Search across students and teachers; filter student roster by class, section, or portal status (`Active`, `Unprovisioned`, `Suspended`).
 - [x] **1-Click "Mark All Present"**: Convenience feature for teachers to record attendance in seconds.
 - [x] **CSV Export**: Download full attendance report for any class and date range with a single click.
 

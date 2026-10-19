@@ -51,16 +51,16 @@ export const Pagination: React.FC<PaginationProps> = ({
         flexWrap: 'wrap',
         gap: '1rem',
         padding: '1rem 0.5rem 0.25rem',
-        borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+        borderTop: '1px solid var(--sand-border)',
         fontSize: '0.8125rem',
-        color: 'var(--text-secondary)',
+        color: 'var(--slate)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <span>
-          Showing <strong style={{ color: '#ffffff' }}>{startItem}</strong> to{' '}
-          <strong style={{ color: '#ffffff' }}>{endItem}</strong> of{' '}
-          <strong style={{ color: '#ffffff' }}>{totalItems}</strong> entries
+          Showing <strong style={{ color: 'var(--charcoal)' }}>{startItem}</strong> to{' '}
+          <strong style={{ color: 'var(--charcoal)' }}>{endItem}</strong> of{' '}
+          <strong style={{ color: 'var(--charcoal)' }}>{totalItems}</strong> entries
         </span>
 
         {onPageSizeChange && (
@@ -73,7 +73,10 @@ export const Pagination: React.FC<PaginationProps> = ({
                 padding: '0.2rem 0.5rem',
                 fontSize: '0.75rem',
                 height: '28px',
-                background: 'rgba(15, 23, 42, 0.8)',
+                background: 'var(--surface-inset)',
+                color: 'var(--charcoal)',
+                border: '1px solid var(--sand-border)',
+                cursor: 'pointer',
               }}
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}

@@ -255,3 +255,70 @@ export const exportAttendanceCsv = async (req: AuthenticatedRequest, res: Respon
   res.setHeader('Content-Disposition', 'attachment; filename="attendance-report.csv"');
   res.status(200).send(csvContent);
 };
+
+export const launchAttendanceDay = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const { date: dateStr, isOpen = true } = req.body;
+  let targetDate: Date;
+  let formattedDateStr: string;
+
+  if (dateStr && typeof dateStr === 'string') {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    targetDate = new Date(Date.UTC(year, month - 1, day));
+    formattedDateStr = dateStr;
+  } else {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const day = now.getDate();
+    targetDate = new Date(Date.UTC(year, month, day));
+    formattedDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  const attendanceDay = await prisma.attendanceDay.upsert({
+    where: { date: targetDate },
+    update: { isOpen },
+    create: { date: targetDate, isOpen, openedById: req.user!.id },
+  });
+
+  res.status(200).json({
+    success: true,
+    message: isOpen ? "Attendance session launched for live roll call." : "Attendance session closed.",
+    data: {
+      date: formattedDateStr,
+      isOpen: attendanceDay.isOpen,
+      openedAt: attendanceDay.openedAt,
+    },
+  });
+};
+
+export const getAttendanceDayStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const { date: dateStr } = req.query;
+  let targetDate: Date;
+  let formattedDateStr: string;
+
+  if (dateStr && typeof dateStr === 'string') {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    targetDate = new Date(Date.UTC(year, month - 1, day));
+    formattedDateStr = dateStr;
+  } else {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const day = now.getDate();
+    targetDate = new Date(Date.UTC(year, month, day));
+    formattedDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  const attendanceDay = await prisma.attendanceDay.findUnique({
+    where: { date: targetDate },
+  });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      date: formattedDateStr,
+      isOpen: attendanceDay ? attendanceDay.isOpen : false,
+      openedAt: attendanceDay?.openedAt || null,
+    },
+  });
+};

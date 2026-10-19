@@ -7,14 +7,16 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   maxWidth?: string;
+  subtitle?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
   title,
+  subtitle,
   children,
-  maxWidth = '550px',
+  maxWidth = '560px',
 }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -40,8 +42,9 @@ export const Modal: React.FC<ModalProps> = ({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        backdropFilter: 'blur(8px)',
+        backgroundColor: 'rgba(35, 43, 37, 0.45)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
         zIndex: 1000,
         display: 'flex',
         alignItems: 'center',
@@ -51,7 +54,7 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="glass-panel animate-fade-in"
+        className="animate-fade-in"
         style={{
           width: '100%',
           maxWidth,
@@ -59,35 +62,51 @@ export const Modal: React.FC<ModalProps> = ({
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
+          backgroundColor: 'var(--surface)',
+          borderRadius: 'var(--radius-xl)',
+          border: '1px solid var(--sand-border)',
+          boxShadow: 'var(--neu-flat-lg)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <div
           style={{
             padding: '1.25rem 1.75rem',
-            borderBottom: '1px solid var(--border-subtle)',
+            borderBottom: '1px solid var(--sand-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            background: 'var(--surface)',
           }}
         >
-          <h3 style={{ fontSize: '1.25rem' }}>{title}</h3>
+          <div>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--charcoal)', margin: 0 }}>
+              {title}
+            </h3>
+            {subtitle && (
+              <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: 'var(--slate)' }}>
+                {subtitle}
+              </p>
+            )}
+          </div>
           <button
             onClick={onClose}
+            className="neu-btn"
             style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              display: 'flex',
-              padding: '0.25rem',
-              borderRadius: '4px',
+              width: '34px',
+              height: '34px',
+              padding: 0,
+              borderRadius: '50%',
+              color: 'var(--slate)',
             }}
+            aria-label="Close modal"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
-        <div style={{ padding: '1.75rem', overflowY: 'auto' }}>{children}</div>
+        <div style={{ padding: '1.75rem', overflowY: 'auto', background: 'var(--surface)' }}>
+          {children}
+        </div>
       </div>
     </div>
   );

@@ -2,7 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/shared/ui/Modal/Modal';
 import type { Student, SchoolClass } from '@/shared/types';
 import { classesApi } from '@/features/classes/api/classes.api';
-import { ShieldCheck, ShieldAlert, KeyRound, Mail, UserCheck, AlertCircle } from 'lucide-react';
+import {
+  ShieldCheck,
+  ShieldAlert,
+  Ban,
+  CheckCircle2,
+  Lock,
+  KeyRound,
+  Mail,
+  UserCheck,
+  Eye,
+  EyeOff,
+  Dices,
+  Info,
+  Calendar,
+  Phone,
+  User,
+} from 'lucide-react';
 
 interface StudentModalProps {
   isOpen: boolean;
@@ -32,12 +48,14 @@ export const StudentModal: React.FC<StudentModalProps> = ({
   const [createAccount, setCreateAccount] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('student123');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Edit Mode Portal Access State
   const [hasAccount, setHasAccount] = useState(false);
   const [grantPortal, setGrantPortal] = useState(false);
   const [portalEmail, setPortalEmail] = useState('');
   const [portalPassword, setPortalPassword] = useState('');
+  const [showPortalPassword, setShowPortalPassword] = useState(false);
   const [portalActive, setPortalActive] = useState(true);
   const [revokePortal, setRevokePortal] = useState(false);
 
@@ -63,7 +81,6 @@ export const StudentModal: React.FC<StudentModalProps> = ({
         const accountExists = !!studentToEdit.user;
         setHasAccount(accountExists);
         setGrantPortal(false);
-        setRevokePortal(false);
         setPortalPassword('');
         if (accountExists && studentToEdit.user) {
           setPortalEmail(studentToEdit.user.email);
@@ -83,16 +100,32 @@ export const StudentModal: React.FC<StudentModalProps> = ({
         setDateOfBirth('');
         setCreateAccount(true);
         setEmail('');
-        setPassword('student123');
+        setPassword('SF-' + Math.floor(1000 + Math.random() * 9000) + '!');
         setHasAccount(false);
         setGrantPortal(false);
-        setRevokePortal(false);
         setPortalEmail('');
         setPortalPassword('');
         setPortalActive(true);
       }
     }
   }, [isOpen, studentToEdit, defaultClassId]);
+
+  // Auto-suggest student email when name changes
+  const handleNameBlur = () => {
+    if (!studentToEdit && name.trim() && !email) {
+      const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '.');
+      setEmail(`${cleanName}@schoolflow.edu`);
+    }
+  };
+
+  const generateRandomPassword = (isEdit: boolean) => {
+    const randomCode = 'SF-' + Math.floor(1000 + Math.random() * 9000) + '!';
+    if (isEdit) {
+      setPortalPassword(randomCode);
+    } else {
+      setPassword(randomCode);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,39 +134,53 @@ export const StudentModal: React.FC<StudentModalProps> = ({
       const payload: any = {
         name,
         rollNumber,
+        studentId: studentId.trim() || null,
         classId,
-        studentId: studentId.trim() !== '' ? studentId.trim() : null,
         guardianName,
         guardianPhone,
-        guardianEmail: guardianEmail.trim() !== '' ? guardianEmail.trim() : null,
+        guardianEmail: guardianEmail.trim() || null,
         dateOfBirth: dateOfBirth || null,
       };
 
       if (!studentToEdit) {
-        if (createAccount && email) {
-          payload.email = email.trim();
-          payload.password = password;
+        if (createAccount) {
+          payload.user = {
+            email,
+            password,
+            isActive: true,
+          };
+          payload.portalActive = true;
         }
       } else {
-        // Edit mode portal handling
-        if (revokePortal) {
-          payload.portalAction = 'revoke';
-        } else if (!hasAccount && grantPortal) {
+        if (!hasAccount && grantPortal) {
+          payload.portalEmail = portalEmail;
+          payload.portalPassword = portalPassword || 'SF-9000!';
+          payload.portalActive = true;
           payload.portalAction = 'grant';
-          payload.portalEmail = portalEmail.trim();
-          payload.portalPassword = portalPassword.trim() || 'student123';
+          payload.user = {
+            email: portalEmail,
+            password: portalPassword || 'SF-9000!',
+            isActive: true,
+          };
         } else if (hasAccount) {
-          payload.portalAction = 'update';
-          if (portalEmail.trim()) payload.portalEmail = portalEmail.trim();
-          if (portalPassword.trim()) payload.portalPassword = portalPassword.trim();
+          payload.portalEmail = portalEmail;
           payload.portalActive = portalActive;
+          payload.portalAction = portalActive ? 'update' : 'suspend';
+          if (portalPassword.trim()) {
+            payload.portalPassword = portalPassword.trim();
+          }
+          payload.user = {
+            email: portalEmail,
+            isActive: portalActive,
+            ...(portalPassword.trim() ? { password: portalPassword.trim() } : {}),
+          };
         }
       }
 
       await onSubmit(payload);
       onClose();
-    } catch {
-      // error handled in hook
+    } catch (err) {
+      console.error(err);
     } finally {
       setSubmitting(false);
     }
@@ -143,272 +190,529 @@ export const StudentModal: React.FC<StudentModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={studentToEdit ? 'Edit Student Details & Portal Access' : 'Enroll New Student'}
-      maxWidth="640px"
+      title={studentToEdit ? 'Edit Student Profile' : 'Enroll New Student'}
+      subtitle={
+        studentToEdit
+          ? `Roll #${studentToEdit.rollNumber} • ${studentToEdit.name}`
+          : 'Complete academic profile & digital portal credentials'
+      }
+      maxWidth="680px"
     >
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
-          <div className="form-group">
-            <label className="form-label">Student Full Name *</label>
-            <input
-              type="text"
-              required
-              className="form-input"
-              placeholder="e.g. Alex Johnson"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {/* SECTION A: Core Profile (Sunken Well) */}
+        <div
+          className="neu-inset"
+          style={{
+            padding: '1.25rem',
+            borderRadius: 'var(--radius-lg)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+            <User size={16} color="var(--primary-laurel)" />
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--charcoal)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Academic & Personal Details
+            </span>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Roll Number *</label>
-            <input
-              type="text"
-              required
-              className="form-input"
-              placeholder="e.g. 101"
-              value={rollNumber}
-              onChange={(e) => setRollNumber(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div className="form-group">
-            <label className="form-label">Class & Section *</label>
-            <select
-              required
-              className="form-select"
-              value={classId}
-              onChange={(e) => setClassId(e.target.value)}
-            >
-              <option value="">Select Enrolled Class</option>
-              {classes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} - {c.section}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Institutional Student ID (Optional)</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="e.g. STU-2026-001"
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div className="form-group">
-            <label className="form-label">Guardian / Parent Name *</label>
-            <input
-              type="text"
-              required
-              className="form-input"
-              placeholder="e.g. Robert Johnson"
-              value={guardianName}
-              onChange={(e) => setGuardianName(e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Guardian Phone *</label>
-            <input
-              type="tel"
-              required
-              className="form-input"
-              placeholder="+1 555-0101"
-              value={guardianPhone}
-              onChange={(e) => setGuardianPhone(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div className="form-group">
-            <label className="form-label">Guardian Email (Optional)</label>
-            <input
-              type="email"
-              className="form-input"
-              placeholder="guardian@example.com"
-              value={guardianEmail}
-              onChange={(e) => setGuardianEmail(e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Date of Birth</label>
-            <input
-              type="date"
-              className="form-input"
-              value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Create Mode: Account Creation */}
-        {!studentToEdit && (
-          <div style={{ marginTop: '0.75rem', padding: '1rem 1.25rem', background: 'rgba(0, 0, 0, 0.25)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">Full Student Name *</label>
               <input
-                type="checkbox"
-                checked={createAccount}
-                onChange={(e) => setCreateAccount(e.target.checked)}
+                type="text"
+                className="form-input"
+                placeholder="e.g. Amara Okafor"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onBlur={handleNameBlur}
+                required
               />
-              Create Student Login Account (Enables Self-Service Portal)
-            </label>
+            </div>
 
-            {createAccount && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.875rem' }}>
-                <div className="form-group" style={{ marginBottom: 0 }}>
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">Assigned Classroom *</label>
+              <select
+                className="form-select"
+                value={classId}
+                onChange={(e) => setClassId(e.target.value)}
+                required
+              >
+                <option value="">Select Class & Section</option>
+                {classes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} - {c.section} {c.roomNumber ? `(${c.roomNumber})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">Roll Number *</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. 101"
+                value={rollNumber}
+                onChange={(e) => setRollNumber(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">Institutional Student ID</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. S-2025-084"
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">Date of Birth</label>
+              <input
+                type="date"
+                className="form-input"
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Guardian Info */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(217, 211, 199, 0.6)' }}>
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">Guardian Name *</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. Chinedu Okafor"
+                value={guardianName}
+                onChange={(e) => setGuardianName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">Guardian Phone *</label>
+              <input
+                type="tel"
+                className="form-input"
+                placeholder="e.g. +1 555-0144"
+                value={guardianPhone}
+                onChange={(e) => setGuardianPhone(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">Guardian Email</label>
+              <input
+                type="email"
+                className="form-input"
+                placeholder="parent@example.com"
+                value={guardianEmail}
+                onChange={(e) => setGuardianEmail(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION B: Portal Account Management */}
+        <div
+          className="neu-card-sm"
+          style={{
+            padding: '1.25rem',
+            borderRadius: 'var(--radius-lg)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            border: '1px solid var(--sand-border)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <ShieldCheck size={18} color="var(--primary-laurel)" />
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--charcoal)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Digital Student Portal Access
+              </span>
+            </div>
+
+            {!studentToEdit && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+                <input
+                  type="checkbox"
+                  checked={createAccount}
+                  onChange={(e) => setCreateAccount(e.target.checked)}
+                  style={{ accentColor: 'var(--primary-laurel)', width: '16px', height: '16px' }}
+                />
+                Provision Student Login
+              </label>
+            )}
+          </div>
+
+          {/* Creation Mode Portal Account Fields */}
+          {!studentToEdit && createAccount && (
+            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1rem' }}>
+                <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">Login Email *</label>
                   <input
                     type="email"
-                    required={createAccount}
                     className="form-input"
-                    placeholder="student@school.com"
+                    placeholder="student@schoolflow.edu"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required={createAccount}
                   />
                 </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Initial Password</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="student123"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* Edit Mode: Portal Access Management */}
-        {studentToEdit && (
-          <div style={{ marginTop: '0.75rem', padding: '1.25rem', background: 'rgba(15, 23, 42, 0.6)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {hasAccount ? <ShieldCheck size={18} color="var(--emerald-500)" /> : <ShieldAlert size={18} color="var(--amber-500)" />}
-                <span style={{ fontSize: '0.875rem', fontWeight: 700 }}>
-                  Student Portal Access: {hasAccount ? (portalActive ? 'Active' : 'Suspended') : 'Not Granted'}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <label className="form-label">Initial Password *</label>
+                    <button
+                      type="button"
+                      onClick={() => generateRandomPassword(false)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--primary-laurel)',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                      }}
+                    >
+                      <Dices size={12} /> Random SF-XXXX!
+                    </button>
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="form-input"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required={createAccount}
+                      style={{ paddingRight: '2.5rem' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--slate)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className="neu-inset-sm"
+                style={{
+                  padding: '0.5rem 0.75rem',
+                  fontSize: '0.75rem',
+                  color: 'var(--slate)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                }}
+              >
+                <Info size={14} color="var(--primary-laurel)" style={{ flexShrink: 0 }} />
+                <span>
+                  The student will be prompted to change their temporary password upon their first portal login.
                 </span>
               </div>
-              {hasAccount && (
-                <span className={portalActive ? 'badge badge-present' : 'badge badge-absent'}>
-                  {portalActive ? 'Login Enabled' : 'Disabled'}
-                </span>
-              )}
             </div>
+          )}
 
-            {/* Case 1: Student has no account yet -> Option to grant */}
-            {!hasAccount && (
-              <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: 'var(--primary-500)' }}>
-                  <input
-                    type="checkbox"
-                    checked={grantPortal}
-                    onChange={(e) => setGrantPortal(e.target.checked)}
-                  />
-                  Grant Portal Login Account to this Student
-                </label>
+          {/* Edit Mode Portal Account Fields */}
+          {studentToEdit && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              {hasAccount ? (
+                <div
+                  className="neu-card"
+                  style={{
+                    padding: '1.25rem',
+                    background: portalActive ? 'var(--surface)' : 'rgba(186, 26, 26, 0.05)',
+                    border: portalActive ? '1px solid var(--sand-border)' : '1.5px solid rgba(186, 26, 26, 0.35)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div
+                        className="neu-circle-inset"
+                        style={{
+                          color: portalActive ? 'var(--primary-laurel)' : 'var(--rose-500)',
+                        }}
+                      >
+                        {portalActive ? <ShieldCheck size={18} /> : <ShieldAlert size={18} />}
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--charcoal)' }}>
+                            Portal Security & Access Status
+                          </span>
+                          <span className={`badge ${portalActive ? 'badge-present' : 'badge-absent'}`}>
+                            {portalActive ? (
+                              <>
+                                <UserCheck size={12} /> Active Access
+                              </>
+                            ) : (
+                              <>
+                                <Ban size={12} /> Suspended
+                              </>
+                            )}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--slate)', marginTop: '0.15rem' }}>
+                          Account: <strong style={{ color: 'var(--charcoal)' }}>{portalEmail || studentToEdit.user?.email}</strong>
+                        </div>
+                      </div>
+                    </div>
 
-                {grantPortal && (
+                    <button
+                      type="button"
+                      onClick={() => setPortalActive(!portalActive)}
+                      className="neu-btn btn-sm"
+                      style={{
+                        padding: '0.4rem 0.85rem',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        color: portalActive ? '#BA1A1A' : 'var(--primary-laurel-dark)',
+                        borderColor: portalActive ? 'rgba(186, 26, 26, 0.3)' : 'var(--primary-laurel)',
+                        background: portalActive ? '#FFF8F8' : '#F0F7F2',
+                      }}
+                    >
+                      {portalActive ? (
+                        <>
+                          <Ban size={14} color="#BA1A1A" /> Suspend Student Access
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 size={14} color="var(--primary-laurel)" /> Reactivate Access
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {!portalActive ? (
+                    <div
+                      className="neu-inset-sm"
+                      style={{
+                        marginTop: '0.85rem',
+                        padding: '0.65rem 0.85rem',
+                        background: '#FFF5F5',
+                        border: '1px solid rgba(186, 26, 26, 0.25)',
+                        color: '#BA1A1A',
+                        fontSize: '0.75rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                      }}
+                    >
+                      <Lock size={14} color="#BA1A1A" style={{ flexShrink: 0 }} />
+                      <span>
+                        <strong>Security Hold Active:</strong> The student is currently barred from signing into their student portal account. Roll call records and academic files remain intact.
+                      </span>
+                    </div>
+                  ) : (
+                    <div
+                      className="neu-inset-sm"
+                      style={{
+                        marginTop: '0.85rem',
+                        padding: '0.5rem 0.75rem',
+                        fontSize: '0.75rem',
+                        color: 'var(--slate)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                      }}
+                    >
+                      <Info size={14} color="var(--primary-laurel)" style={{ flexShrink: 0 }} />
+                      <span>
+                        Student has authenticated portal credentials. You may update their email or issue a password reset below.
+                      </span>
+                    </div>
+                  )}
+
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label">Student Login Email *</label>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label">Portal Email</label>
                       <input
                         type="email"
-                        required={grantPortal}
                         className="form-input"
-                        placeholder="student@school.com"
                         value={portalEmail}
                         onChange={(e) => setPortalEmail(e.target.value)}
                       />
                     </div>
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label">Initial Password</label>
-                      <input
-                        type="text"
-                        className="form-input"
-                        placeholder="student123"
-                        value={portalPassword}
-                        onChange={(e) => setPortalPassword(e.target.value)}
-                      />
+
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <label className="form-label">Reset Password (Optional)</label>
+                        <button
+                          type="button"
+                          onClick={() => generateRandomPassword(true)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--primary-laurel)',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                          }}
+                        >
+                          <Dices size={12} /> Random
+                        </button>
+                      </div>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showPortalPassword ? 'text' : 'password'}
+                          className="form-input"
+                          placeholder="Leave blank to keep unchanged"
+                          value={portalPassword}
+                          onChange={(e) => setPortalPassword(e.target.value)}
+                          style={{ paddingRight: '2.5rem' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPortalPassword(!showPortalPassword)}
+                          style={{
+                            position: 'absolute',
+                            right: '0.75rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--slate)',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {showPortalPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
-            )}
-
-            {/* Case 2: Student already has account -> Option to update, reset password, toggle, or revoke */}
-            {hasAccount && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Portal Login Email</label>
-                    <input
-                      type="email"
-                      required={hasAccount && !revokePortal}
-                      disabled={revokePortal}
-                      className="form-input"
-                      value={portalEmail}
-                      onChange={(e) => setPortalEmail(e.target.value)}
-                    />
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--slate)' }}>
+                      Student currently has no login credentials.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGrantPortal(!grantPortal);
+                        if (!portalEmail) {
+                          const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '.');
+                          setPortalEmail(`${cleanName}@schoolflow.edu`);
+                        }
+                        if (!portalPassword) {
+                          setPortalPassword('SF-' + Math.floor(1000 + Math.random() * 9000) + '!');
+                        }
+                      }}
+                      className="btn btn-sm btn-primary"
+                    >
+                      {grantPortal ? 'Cancel Provisioning' : '+ Provision Portal Access'}
+                    </button>
                   </div>
 
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Reset Password (Optional)</label>
-                    <input
-                      type="text"
-                      disabled={revokePortal}
-                      className="form-input"
-                      placeholder="Leave blank to keep current"
-                      value={portalPassword}
-                      onChange={(e) => setPortalPassword(e.target.value)}
-                    />
-                  </div>
+                  {grantPortal && (
+                    <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label className="form-label">Portal Email *</label>
+                        <input
+                          type="email"
+                          className="form-input"
+                          value={portalEmail}
+                          onChange={(e) => setPortalEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <label className="form-label">Initial Password *</label>
+                          <button
+                            type="button"
+                            onClick={() => generateRandomPassword(true)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: 'var(--primary-laurel)',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                            }}
+                          >
+                            <Dices size={12} /> Random
+                          </button>
+                        </div>
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            type={showPortalPassword ? 'text' : 'password'}
+                            className="form-input"
+                            value={portalPassword}
+                            onChange={(e) => setPortalPassword(e.target.value)}
+                            required
+                            style={{ paddingRight: '2.5rem' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPortalPassword(!showPortalPassword)}
+                            style={{
+                              position: 'absolute',
+                              right: '0.75rem',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              background: 'none',
+                              border: 'none',
+                              color: 'var(--slate)',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {showPortalPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              )}
+            </div>
+          )}
+        </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      disabled={revokePortal}
-                      checked={portalActive}
-                      onChange={(e) => setPortalActive(e.target.checked)}
-                    />
-                    <span>Account Active (Allow logging in)</span>
-                  </label>
-
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: 'var(--rose-500)', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={revokePortal}
-                      onChange={(e) => setRevokePortal(e.target.checked)}
-                    />
-                    <span>Revoke & Delete Portal Account</span>
-                  </label>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
+        {/* Modal Action Buttons */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+          <button type="button" onClick={onClose} className="btn btn-secondary" disabled={submitting}>
             Cancel
           </button>
           <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? 'Saving...' : studentToEdit ? 'Save Changes' : 'Enroll Student'}
+            {submitting ? 'Saving Student Record...' : studentToEdit ? 'Save Changes' : 'Confirm Enrollment'}
           </button>
         </div>
       </form>

@@ -11,21 +11,45 @@ export interface AdminDashboardData {
     lateToday: number;
     totalMarkedToday: number;
   };
+  isAttendanceDayLaunched: boolean;
+  activeAttendanceDate: string;
+  rankedAbsenceHighlights: Array<{
+    classId: string;
+    className: string;
+    roomNumber?: string | null;
+    absentCount: number;
+    lateCount?: number;
+    totalEnrolled: number;
+  }>;
+  recentSubmissions: Array<{
+    classId: string;
+    className: string;
+    teacherName: string;
+    time: string;
+    presentCount: number;
+    totalCount: number;
+  }>;
   classSummaries: Array<{
     classId: string;
     className: string;
+    roomNumber?: string | null;
     teacherName: string;
     totalEnrolled: number;
     markedCount: number;
     presentCount: number;
+    absentCount: number;
+    lateCount?: number;
+    attendanceRate?: number;
     status: string;
   }>;
 }
 
 export interface TeacherDashboardData {
+  isAttendanceDayLaunched: boolean;
   managedClasses: Array<{
     classId: string;
     className: string;
+    roomNumber?: string | null;
     totalStudents: number;
     isAttendanceMarkedToday: boolean;
     presentToday: number;
@@ -40,7 +64,10 @@ export interface StudentDashboardData {
     rollNumber: string;
     institutionalId: string | null;
     className: string;
+    roomNumber?: string | null;
     classTeacher: string;
+    advisorSubject?: string | null;
+    guardianPhone?: string | null;
   };
   stats: {
     totalDays: number;
@@ -49,6 +76,11 @@ export interface StudentDashboardData {
     lateDays: number;
     attendancePercentage: number;
   };
+  thirtyDaysTimeline: Array<{
+    date: string;
+    status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED' | 'UNRECORDED';
+    remarks?: string | null;
+  }>;
   recentLogs: Array<{
     id: string;
     date: string;

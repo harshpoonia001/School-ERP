@@ -144,7 +144,7 @@ export const createTeacher = async (req: Request, res: Response): Promise<void> 
         classesManaged: true,
       },
     });
-  });
+  }, { maxWait: 10000, timeout: 25000 });
 
   res.status(201).json({
     success: true,

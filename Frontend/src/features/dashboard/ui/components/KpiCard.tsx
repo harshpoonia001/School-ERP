@@ -13,34 +13,60 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   value,
   subtitle,
   icon,
-  trendColor = 'var(--primary-500)',
+  trendColor = 'var(--primary-laurel)',
 }) => {
   return (
-    <div className="glass-card" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+    <div
+      className="neu-card"
+      style={{
+        padding: '1.25rem 1.5rem',
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+      }}
+    >
       <div>
-        <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        <p
+          style={{
+            fontSize: '0.75rem',
+            color: 'var(--slate)',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            margin: 0,
+          }}
+        >
           {title}
         </p>
-        <h3 style={{ fontSize: '2rem', marginTop: '0.35rem', marginBottom: '0.25rem', fontWeight: 700 }}>
+        <h3
+          style={{
+            fontSize: '1.85rem',
+            marginTop: '0.35rem',
+            marginBottom: '0.2rem',
+            fontWeight: 800,
+            color: 'var(--charcoal)',
+            letterSpacing: '-0.02em',
+          }}
+        >
           {value}
         </h3>
         {subtitle && (
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--slate-light)', margin: 0 }}>
             {subtitle}
           </p>
         )}
       </div>
       <div
+        className="neu-inset-sm"
         style={{
-          width: '46px',
-          height: '46px',
+          width: '44px',
+          height: '44px',
           borderRadius: '12px',
-          background: 'rgba(255, 255, 255, 0.05)',
-          border: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           color: trendColor,
+          flexShrink: 0,
         }}
       >
         {icon}

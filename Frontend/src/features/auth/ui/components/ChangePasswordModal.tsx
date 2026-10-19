@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '@/shared/ui/Modal/Modal';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { Lock, KeyRound, ShieldAlert } from 'lucide-react';
+import { Lock, KeyRound, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -13,6 +13,8 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -50,17 +52,22 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Change Account Password" maxWidth="480px">
-      <form onSubmit={handleSubmit}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Change Account Password"
+      subtitle="Update your security credentials for portal access"
+      maxWidth="480px"
+    >
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         {errorMsg && (
           <div
+            className="neu-inset-sm"
             style={{
               padding: '0.75rem 1rem',
-              marginBottom: '1.25rem',
-              background: 'var(--rose-bg)',
-              border: '1px solid rgba(244, 63, 94, 0.3)',
-              borderRadius: 'var(--radius-md)',
-              color: '#fda4af',
+              background: '#FBE6E5',
+              borderColor: '#F7C0BD',
+              color: '#BA1A1A',
               fontSize: '0.8125rem',
               display: 'flex',
               alignItems: 'center',
@@ -72,74 +79,84 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
           </div>
         )}
 
-        <div className="form-group">
-          <label className="form-label">Current Password *</label>
-          <div style={{ position: 'relative' }}>
-            <Lock
-              size={18}
-              style={{
-                position: 'absolute',
-                left: '0.875rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-              }}
-            />
-            <input
-              type="password"
-              required
-              className="form-input"
-              style={{ paddingLeft: '2.5rem' }}
-              placeholder="Enter current password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
+        <div
+          className="neu-inset"
+          style={{
+            padding: '1.25rem',
+            borderRadius: 'var(--radius-lg)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}
+        >
+          <div className="form-group" style={{ margin: 0 }}>
+            <label className="form-label">Current Password *</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showCurrent ? 'text' : 'password'}
+                required
+                className="form-input"
+                placeholder="Enter current password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                style={{ paddingRight: '2.5rem' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrent(!showCurrent)}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--slate)',
+                  cursor: 'pointer',
+                }}
+              >
+                {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="form-group">
-          <label className="form-label">New Password * (min 6 characters)</label>
-          <div style={{ position: 'relative' }}>
-            <KeyRound
-              size={18}
-              style={{
-                position: 'absolute',
-                left: '0.875rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-              }}
-            />
-            <input
-              type="password"
-              required
-              className="form-input"
-              style={{ paddingLeft: '2.5rem' }}
-              placeholder="Enter new password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
+          <div className="form-group" style={{ margin: 0 }}>
+            <label className="form-label">New Password * (min 6 characters)</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showNew ? 'text' : 'password'}
+                required
+                className="form-input"
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                style={{ paddingRight: '2.5rem' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNew(!showNew)}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--slate)',
+                  cursor: 'pointer',
+                }}
+              >
+                {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="form-group">
-          <label className="form-label">Confirm New Password *</label>
-          <div style={{ position: 'relative' }}>
-            <KeyRound
-              size={18}
-              style={{
-                position: 'absolute',
-                left: '0.875rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-              }}
-            />
+          <div className="form-group" style={{ margin: 0 }}>
+            <label className="form-label">Confirm New Password *</label>
             <input
               type="password"
               required
               className="form-input"
-              style={{ paddingLeft: '2.5rem' }}
               placeholder="Confirm new password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -147,8 +164,8 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.75rem' }}>
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+          <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
             Cancel
           </button>
           <button type="submit" className="btn btn-primary" disabled={submitting}>

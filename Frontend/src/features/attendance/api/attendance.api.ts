@@ -56,4 +56,16 @@ export const attendanceApi = {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
   },
+
+  launchDay: async (): Promise<{ success: boolean; message: string; date: string }> => {
+    const res = await apiClient.post<{ success: boolean; message: string; date: string }>('/attendance/day/launch');
+    return res.data;
+  },
+
+  getDayStatus: async (date?: string): Promise<{ success: boolean; isLaunched: boolean; date: string; openedAt?: string; openedBy?: string }> => {
+    const res = await apiClient.get<{ success: boolean; isLaunched: boolean; date: string; openedAt?: string; openedBy?: string }>('/attendance/day/status', {
+      params: { date },
+    });
+    return res.data;
+  },
 };

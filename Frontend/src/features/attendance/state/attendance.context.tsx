@@ -20,15 +20,19 @@ interface AttendanceState {
   setIsFullyMarked: (marked: boolean) => void;
   setIsLoading: (loading: boolean) => void;
   setIsSubmitting: (submitting: boolean) => void;
-  updateStudentStatus: (studentId: string, status: AttendanceStatus) => void;
+  updateStudentStatus: (studentId: string, status: AttendanceStatus | null) => void;
   updateStudentRemarks: (studentId: string, remarks: string) => void;
-  markAllStatus: (status: AttendanceStatus) => void;
+  markAllStatus: (status: AttendanceStatus | null) => void;
 }
 
 const AttendanceContext = createContext<AttendanceState | undefined>(undefined);
 
 export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const getTodayDateStr = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const todayStr = getTodayDateStr();
   const [roster, setRoster] = useState<ClassAttendanceRosterItem[]>([]);
   const [history, setHistory] = useState<AttendanceRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
@@ -37,7 +41,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const updateStudentStatus = (studentId: string, status: AttendanceStatus) => {
+  const updateStudentStatus = (studentId: string, status: AttendanceStatus | null) => {
     setRoster((prev) =>
       prev.map((item) => (item.studentId === studentId ? { ...item, status } : item))
     );
@@ -49,7 +53,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     );
   };
 
-  const markAllStatus = (status: AttendanceStatus) => {
+  const markAllStatus = (status: AttendanceStatus | null) => {
     setRoster((prev) => prev.map((item) => ({ ...item, status })));
   };
 

@@ -34,6 +34,7 @@ model User {
   teacher      Teacher?
   student      Student?
   parent       Parent?
+  attendanceDaysOpened AttendanceDay[]
 
   @@map("users")
 }
@@ -59,6 +60,7 @@ model Class {
   id                String       @id @default(uuid())
   name              String
   section           String
+  roomNumber        String?      @default("Room 304") @map("room_number")
   classTeacherId    String?      @map("class_teacher_id")
   classTeacher      Teacher?     @relation("ClassTeacher", fields: [classTeacherId], references: [id], onDelete: SetNull)
   academicYear      String       @default("2026-2027") @map("academic_year")
@@ -140,4 +142,15 @@ model ParentStudent {
 
   @@unique([parentId, studentId])
   @@map("parent_students")
+}
+
+model AttendanceDay {
+  id         String   @id @default(uuid())
+  date       DateTime @unique @db.Date
+  isOpen     Boolean  @default(true) @map("is_open")
+  openedAt   DateTime @default(now()) @map("opened_at")
+  openedById String?  @map("opened_by_id")
+  openedBy   User?    @relation(fields: [openedById], references: [id], onDelete: SetNull)
+
+  @@map("attendance_days")
 }

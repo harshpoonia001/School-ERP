@@ -62,6 +62,7 @@ export interface SchoolClass {
   id: string;
   name: string;
   section: string;
+  roomNumber?: string | null;
   academicYear: string;
   classTeacherId?: string | null;
   classTeacher?: {
@@ -85,6 +86,7 @@ export interface Student {
     id: string;
     name: string;
     section: string;
+    roomNumber?: string | null;
     academicYear?: string;
   };
   guardianName: string;

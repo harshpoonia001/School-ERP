@@ -33,12 +33,7 @@ export const useAttendance = () => {
       setIsLoading(true);
       try {
         const data = await attendanceApi.getClassAttendanceByDate(classId, date);
-        // Default un-marked students to PRESENT for speed, but preserve isMarked flag
-        const populatedRoster = data.roster.map((s) => ({
-          ...s,
-          status: s.status || ('PRESENT' as AttendanceStatus),
-        }));
-        setRoster(populatedRoster);
+        setRoster(data.roster);
         setIsFullyMarked(data.isFullyMarked);
       } catch (err: any) {
         toast.error(err.message || 'Failed to fetch class roster for attendance');

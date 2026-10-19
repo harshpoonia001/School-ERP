@@ -81,19 +81,12 @@ const ToastContainer: React.FC<{ toasts: ToastMessage[]; onRemove: (id: string) 
       }}
     >
       {toasts.map((toast) => {
-        const bg =
-          toast.type === 'success'
-            ? 'rgba(6, 78, 59, 0.95)'
-            : toast.type === 'error'
-            ? 'rgba(136, 19, 55, 0.95)'
-            : 'rgba(30, 58, 138, 0.95)';
+        const isSuccess = toast.type === 'success';
+        const isError = toast.type === 'error';
 
-        const border =
-          toast.type === 'success'
-            ? '1px solid rgba(16, 185, 129, 0.5)'
-            : toast.type === 'error'
-            ? '1px solid rgba(244, 63, 94, 0.5)'
-            : '1px solid rgba(59, 130, 246, 0.5)';
+        const bg = isSuccess ? '#E1ECE5' : isError ? '#FBE6E5' : '#EAF2EC';
+        const border = isSuccess ? '1px solid #C4DCC8' : isError ? '1px solid #F7C0BD' : '1px solid #D0E3D3';
+        const color = isSuccess ? '#2F593E' : isError ? '#BA1A1A' : '#3E6B4C';
 
         return (
           <div
@@ -102,18 +95,17 @@ const ToastContainer: React.FC<{ toasts: ToastMessage[]; onRemove: (id: string) 
               pointerEvents: 'auto',
               background: bg,
               border,
-              backdropFilter: 'blur(8px)',
-              color: '#ffffff',
-              padding: '0.875rem 1.25rem',
-              borderRadius: '10px',
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+              color,
+              padding: '0.85rem 1.25rem',
+              borderRadius: '12px',
+              boxShadow: '6px 6px 14px rgba(188, 182, 168, 0.4), -4px -4px 10px rgba(255, 255, 255, 0.95)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '0.75rem',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              animation: 'fadeIn 0.25s ease-out forwards',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              animation: 'fadeIn 0.22s ease-out forwards',
             }}
           >
             <span>{toast.message}</span>
@@ -122,10 +114,11 @@ const ToastContainer: React.FC<{ toasts: ToastMessage[]; onRemove: (id: string) 
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: 'rgba(255, 255, 255, 0.7)',
+                color,
                 cursor: 'pointer',
-                fontSize: '1.1rem',
+                fontSize: '1.2rem',
                 lineHeight: 1,
+                padding: '0 0.25rem',
               }}
             >
               &times;

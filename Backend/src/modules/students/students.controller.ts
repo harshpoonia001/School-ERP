@@ -28,8 +28,13 @@ const updateStudentSchema = z.object({
   studentId: z.string().optional().nullable(),
   portalEmail: z.string().email().optional().nullable(),
   portalPassword: z.string().min(6).optional().nullable(),
-  portalAction: z.enum(['grant', 'update', 'revoke', 'toggle_active']).optional(),
+  portalAction: z.enum(['grant', 'update', 'revoke', 'toggle_active', 'suspend', 'reactivate']).optional(),
   portalActive: z.boolean().optional(),
+  user: z.object({
+    email: z.string().email().optional().nullable(),
+    password: z.string().min(6).optional().nullable(),
+    isActive: z.boolean().optional(),
+  }).optional(),
 });
 
 export const getAllStudents = async (req: Request, res: Response): Promise<void> => {
@@ -173,15 +178,19 @@ export const createStudent = async (req: Request, res: Response): Promise<void> 
     }
   }
 
+  let precomputedHash: string | null = null;
+  if (data.email && data.email.trim() !== '') {
+    precomputedHash = await bcrypt.hash(data.password, 10);
+  }
+
   const result = await prisma.$transaction(async (tx) => {
     let userId: string | null = null;
 
     if (data.email && data.email.trim() !== '') {
-      const passwordHash = await bcrypt.hash(data.password, 10);
       const user = await tx.user.create({
         data: {
           email: data.email.toLowerCase().trim(),
-          passwordHash,
+          passwordHash: precomputedHash!,
           role: Role.STUDENT,
           mustChangePassword: true,
         },
@@ -208,7 +217,7 @@ export const createStudent = async (req: Request, res: Response): Promise<void> 
     });
 
     return newStudent;
-  });
+  }, { maxWait: 10000, timeout: 25000 });
 
   res.status(201).json({
     success: true,
@@ -266,12 +275,36 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
     }
   }
 
+  // Consolidate target portal status and credentials
+  let targetPortalActive: boolean | undefined = undefined;
+  if (data.portalActive !== undefined) {
+    targetPortalActive = data.portalActive;
+  } else if (data.user?.isActive !== undefined) {
+    targetPortalActive = data.user.isActive;
+  } else if (data.portalAction === 'suspend') {
+    targetPortalActive = false;
+  } else if (data.portalAction === 'reactivate') {
+    targetPortalActive = true;
+  }
+
+  const targetPortalEmail = (data.portalEmail || data.user?.email || '').toLowerCase().trim();
+  const rawPortalPassword = data.portalPassword || data.user?.password;
+
+  // Precompute any bcrypt hash outside of interactive transaction
+  let portalPasswordHash: string | null = null;
+  if (data.portalAction === 'grant' || (!student.userId && targetPortalEmail)) {
+    const pass = rawPortalPassword || 'student123';
+    portalPasswordHash = await bcrypt.hash(pass, 10);
+  } else if (student.userId && rawPortalPassword && rawPortalPassword.trim().length >= 6) {
+    portalPasswordHash = await bcrypt.hash(rawPortalPassword.trim(), 10);
+  }
+
   // Handle Portal Access Actions
   await prisma.$transaction(async (tx) => {
     let currentUserId = student.userId;
 
-    if (data.portalAction === 'grant' || (!student.userId && data.portalEmail)) {
-      const email = (data.portalEmail || '').toLowerCase().trim();
+    if (data.portalAction === 'grant' || (!student.userId && targetPortalEmail)) {
+      const email = targetPortalEmail;
       if (!email) {
         throw new Error('A valid email address is required to grant portal access');
       }
@@ -281,13 +314,12 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
         throw new Error('A user account with this email address already exists');
       }
 
-      const pass = data.portalPassword || 'student123';
-      const passwordHash = await bcrypt.hash(pass, 10);
       const newUser = await tx.user.create({
         data: {
           email,
-          passwordHash,
+          passwordHash: portalPasswordHash!,
           role: Role.STUDENT,
+          isActive: targetPortalActive !== undefined ? targetPortalActive : true,
           mustChangePassword: true,
         },
       });
@@ -301,26 +333,25 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
       await tx.user.delete({ where: { id: student.userId } });
       currentUserId = null;
     } else if (student.userId) {
-      // Update existing user credentials
+      // Update existing user credentials & status
       const userUpdate: any = {};
-      if (data.portalEmail && data.portalEmail.toLowerCase().trim() !== student.user?.email) {
-        const email = data.portalEmail.toLowerCase().trim();
+      if (targetPortalEmail && targetPortalEmail !== student.user?.email) {
         const existingUser = await tx.user.findFirst({
-          where: { email, NOT: { id: student.userId } },
+          where: { email: targetPortalEmail, NOT: { id: student.userId } },
         });
         if (existingUser) {
           throw new Error('Another user account already uses this email address');
         }
-        userUpdate.email = email;
+        userUpdate.email = targetPortalEmail;
       }
 
-      if (data.portalPassword && data.portalPassword.trim().length >= 6) {
-        userUpdate.passwordHash = await bcrypt.hash(data.portalPassword.trim(), 10);
+      if (portalPasswordHash) {
+        userUpdate.passwordHash = portalPasswordHash;
         userUpdate.mustChangePassword = true;
       }
 
-      if (data.portalActive !== undefined) {
-        userUpdate.isActive = data.portalActive;
+      if (targetPortalActive !== undefined) {
+        userUpdate.isActive = targetPortalActive;
       }
 
       if (Object.keys(userUpdate).length > 0) {
@@ -346,7 +377,7 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
         userId: currentUserId,
       },
     });
-  });
+  }, { maxWait: 10000, timeout: 25000 });
 
   const updated = await prisma.student.findUnique({
     where: { id },
