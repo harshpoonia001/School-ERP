@@ -21,12 +21,8 @@ const allowedOrigins = ENV.FRONTEND_URL
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, Postman)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-        return callback(null, true);
-      }
-      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+      // Allow all origins for prototype evaluation across local and deployed environments
+      return callback(null, true);
     },
     credentials: true,
   })
