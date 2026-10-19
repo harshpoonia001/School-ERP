@@ -1,0 +1,16 @@
+# Environment files
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies
+**/node_modules/
+
+# Build artifacts
+**/dist/
+**/build/
+
+# Logs & temp
+**/npm-debug.log*
+**/.DS_Store
+docs/

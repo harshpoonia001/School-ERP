@@ -1,0 +1,143 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role      @default(STUDENT)
+  isActive           Boolean   @default(true) @map("is_active")
+  mustChangePassword Boolean   @default(true) @map("must_change_password")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  teacher      Teacher?
+  student      Student?
+  parent       Parent?
+
+  @@map("users")
+}
+
+model Teacher {
+  id                String       @id @default(uuid())
+  employeeId        String?      @unique @map("employee_id")
+  userId            String       @unique @map("user_id")
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  phone             String?
+  subject           String
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  classesManaged    Class[]      @relation("ClassTeacher")
+  attendanceMarked  Attendance[] @relation("MarkedByTeacher")
+
+  @@map("teachers")
+}
+
+model Class {
+  id                String       @id @default(uuid())
+  name              String
+  section           String
+  classTeacherId    String?      @map("class_teacher_id")
+  classTeacher      Teacher?     @relation("ClassTeacher", fields: [classTeacherId], references: [id], onDelete: SetNull)
+  academicYear      String       @default("2026-2027") @map("academic_year")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  students          Student[]
+  attendanceRecords Attendance[]
+
+  @@unique([name, section, academicYear])
+  @@map("classes")
+}
+
+model Student {
+  id             String          @id @default(uuid())
+  studentId      String?         @unique @map("student_id")
+  userId         String?         @unique @map("user_id")
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  rollNumber     String          @map("roll_number")
+  name           String
+  classId        String          @map("class_id")
+  class          Class           @relation(fields: [classId], references: [id], onDelete: Restrict)
+  guardianName   String          @map("guardian_name")
+  guardianPhone  String          @map("guardian_phone")
+  guardianEmail  String?         @map("guardian_email")
+  dateOfBirth    DateTime?       @map("date_of_birth") @db.Date
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  attendance     Attendance[]
+  parentStudents ParentStudent[]
+
+  @@unique([classId, rollNumber])
+  @@index([classId])
+  @@map("students")
+}
+
+model Attendance {
+  id                  String           @id @default(uuid())
+  studentId           String           @map("student_id")
+  student             Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId             String           @map("class_id")
+  class               Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  date                DateTime         @db.Date
+  status              AttendanceStatus
+  markedByTeacherId   String?          @map("marked_by_teacher_id")
+  markedByTeacher     Teacher?         @relation("MarkedByTeacher", fields: [markedByTeacherId], references: [id], onDelete: SetNull)
+  remarks             String?
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+
+  @@unique([studentId, date])
+  @@index([classId, date])
+  @@index([date])
+  @@map("attendance")
+}
+
+model Parent {
+  id        String          @id @default(uuid())
+  userId    String          @unique @map("user_id")
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String?
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  students  ParentStudent[]
+
+  @@map("parents")
+}
+
+model ParentStudent {
+  id           String   @id @default(uuid())
+  parentId     String   @map("parent_id")
+  parent       Parent   @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  studentId    String   @map("student_id")
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  relationship String   @default("Guardian")
+
+  @@unique([parentId, studentId])
+  @@map("parent_students")
+}
